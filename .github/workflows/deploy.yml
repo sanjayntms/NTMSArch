@@ -1,0 +1,203 @@
+name: Deploy to Azure App Service
+
+# ─────────────────────────────────────────────────────────────────
+# HOW TO ADD A NEW TOPIC:
+#   1. Create  public/topics/security-module.js  (follow the template)
+#   2. git add + commit + push
+#   3. This workflow deploys — the server auto-discovers the new file
+#   4. Done. No changes to index.html, server.js, or this workflow.
+#
+# Branch → deployment target:
+#   main        → production slot  (https://<app>.azurewebsites.net)
+#   staging     → staging slot
+#   dev         → dev slot
+#   release/x.y → release-x-y slot  (slot auto-created if missing)
+# ─────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: [main, staging, dev, 'release/**']
+  workflow_dispatch:
+
+env:
+  # ── Edit these once — never touch again ───────────────────────
+  AZURE_RG:          ntms-cloud-guide-rg
+  AZURE_LOCATION:    canadacentral
+  APP_SERVICE_PLAN:  ntms-cloud-guide-plan
+  APP_SERVICE_NAME:  ntms-cloud-guide
+  NODE_VERSION:      '20-lts'
+  APP_SKU:           S1          # S1+ required for deployment slots
+  # ──────────────────────────────────────────────────────────────
+
+jobs:
+  deploy:
+    name: Provision (idempotent) + Deploy [${{ github.ref_name }}]
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1 ── Checkout ───────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2 ── Azure Login (SP via AZURE_CREDENTIALS secret) ──────
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # 3 ── Idempotent infra ────────────────────────────────────
+      - name: Provision infrastructure (idempotent)
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH="${GITHUB_REF_NAME}"
+          APP="${{ env.APP_SERVICE_NAME }}"
+          RG="${{ env.AZURE_RG }}"
+          PLAN="${{ env.APP_SERVICE_PLAN }}"
+          LOC="${{ env.AZURE_LOCATION }}"
+          SKU="${{ env.APP_SKU }}"
+
+          echo "──────────────────────────────────────"
+          echo "Branch : $BRANCH"
+          echo "App    : $APP"
+          echo "RG     : $RG"
+          echo "──────────────────────────────────────"
+
+          # Resource Group
+          if ! az group show --name "$RG" --output none 2>/dev/null; then
+            echo "→ Creating resource group $RG in $LOC..."
+            az group create --name "$RG" --location "$LOC" --output none
+          else
+            echo "✓ Resource group exists"
+          fi
+
+          # App Service Plan
+          if ! az appservice plan show --name "$PLAN" --resource-group "$RG" --output none 2>/dev/null; then
+            echo "→ Creating App Service Plan $PLAN ($SKU, Linux)..."
+            az appservice plan create \
+              --name "$PLAN" \
+              --resource-group "$RG" \
+              --location "$LOC" \
+              --sku "$SKU" \
+              --is-linux \
+              --output none
+          else
+            echo "✓ App Service Plan exists"
+          fi
+
+          # App Service
+          if ! az webapp show --name "$APP" --resource-group "$RG" --output none 2>/dev/null; then
+            echo "→ Creating App Service $APP..."
+            az webapp create \
+              --name "$APP" \
+              --resource-group "$RG" \
+              --plan "$PLAN" \
+              --runtime "NODE:${{ env.NODE_VERSION }}" \
+              --output none
+          else
+            echo "✓ App Service exists"
+          fi
+
+          # App settings (idempotent — safe to re-run)
+          az webapp config appsettings set \
+            --name "$APP" --resource-group "$RG" \
+            --settings \
+              WEBSITE_NODE_DEFAULT_VERSION="~20" \
+              SCM_DO_BUILD_DURING_DEPLOYMENT="true" \
+              NODE_ENV="production" \
+            --output none
+          echo "✓ App settings applied"
+
+          # Startup command
+          az webapp config set \
+            --name "$APP" --resource-group "$RG" \
+            --startup-file "node server.js" \
+            --output none
+          echo "✓ Startup command set"
+
+          # Deployment slot for non-main branches
+          if [ "$BRANCH" != "main" ]; then
+            # Sanitise slot name: replace / with -, truncate to 59 chars
+            SLOT="${BRANCH//\//-}"
+            SLOT="${SLOT:0:59}"
+            if ! az webapp deployment slot show \
+              --name "$APP" --resource-group "$RG" --slot "$SLOT" \
+              --output none 2>/dev/null; then
+              echo "→ Creating deployment slot '$SLOT'..."
+              az webapp deployment slot create \
+                --name "$APP" --resource-group "$RG" \
+                --slot "$SLOT" \
+                --configuration-source "$APP" \
+                --output none
+            else
+              echo "✓ Slot '$SLOT' exists"
+            fi
+            echo "DEPLOY_SLOT=$SLOT" >> "$GITHUB_ENV"
+          else
+            echo "DEPLOY_SLOT=" >> "$GITHUB_ENV"
+          fi
+
+          echo "──────────────────────────────────────"
+          echo "✅ Infrastructure ready"
+
+      # 4 ── Node setup + install ───────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --omit=dev
+
+      # 5 ── Show discovered topics (diagnostic) ────────────────
+      - name: Show auto-discovered topic modules
+        run: |
+          echo "── Topic modules in this branch ──────"
+          ls public/topics/*-module.js 2>/dev/null | sort || echo "(none)"
+          echo "──────────────────────────────────────"
+          echo "Server will auto-load these at startup — no index.html edit needed."
+
+      # 6 ── Build deployment package ───────────────────────────
+      - name: Build deployment zip
+        run: |
+          zip -r deploy.zip . \
+            --exclude ".git/*" \
+            --exclude ".github/*" \
+            --exclude "*.md" \
+            --exclude ".env*" \
+            --exclude "*.test.js" \
+            --quiet
+          echo "Package: $(du -sh deploy.zip | cut -f1)"
+
+      # 7a ── Deploy to production (main) ───────────────────────
+      - name: Deploy → Production
+        if: github.ref_name == 'main'
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.APP_SERVICE_NAME }}
+          package: deploy.zip
+
+      # 7b ── Deploy to slot (non-main) ─────────────────────────
+      - name: Deploy → Slot (${{ env.DEPLOY_SLOT }})
+        if: github.ref_name != 'main'
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.APP_SERVICE_NAME }}
+          slot-name: ${{ env.DEPLOY_SLOT }}
+          package: deploy.zip
+
+      # 8 ── Print URL ───────────────────────────────────────────
+      - name: Deployment URL
+        run: |
+          APP="${{ env.APP_SERVICE_NAME }}"
+          if [ -z "$DEPLOY_SLOT" ]; then
+            echo "🚀 https://${APP}.azurewebsites.net"
+          else
+            echo "🚀 https://${APP}-${DEPLOY_SLOT}.azurewebsites.net"
+          fi
+
+      # 9 ── Logout ──────────────────────────────────────────────
+      - name: Azure Logout
+        if: always()
+        run: az logout
