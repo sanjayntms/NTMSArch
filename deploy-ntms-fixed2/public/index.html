@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NTMS Cloud Guide · Azure · AWS · GCP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<!-- TOPIC MODULES — auto-injected by server -->
+    <!-- END TOPIC MODULES -->
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f4f8;--surface:#fff;--surface2:#f7fafc;--border:#dde8f0;
+  --text:#0d1b2a;--text2:#3a5068;--text3:#6a8ba4;
+  --green:#107c10;--green-bg:#e8f5e8;--red:#a4262c;--red-bg:#fce8e9;
+  --r:14px;--rsm:8px;
+  --shadow:0 2px 16px rgba(0,80,160,.07),0 1px 4px rgba(0,80,160,.05);
+  --shadow-h:0 8px 32px rgba(0,80,160,.14);
+  --sidebar:240px;
+  /* cloud theme — swapped by JS */
+  --ca:#0078d4;--cb:#004578;--cc:#ebf4fc;--cd:#cce4f6;
+}
+html{scroll-behavior:smooth;height:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+/* ── TOP NAV ── */
+.topnav{height:54px;background:var(--cb);display:flex;align-items:center;padding:0 1.25rem;gap:14px;position:sticky;top:0;z-index:300;box-shadow:0 2px 12px rgba(0,0,0,.22);transition:background .3s}
+.topnav-brand{display:flex;align-items:center;gap:9px;cursor:pointer;flex-shrink:0}
+.topnav-logo{width:30px;height:30px;background:var(--ca);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background .3s}
+.topnav-title{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#fff;white-space:nowrap}
+.topnav-cloud{display:flex;gap:3px;margin-left:auto}
+.cloud-btn{display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:20px;font-size:12.5px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;border:1.5px solid transparent;color:rgba(255,255,255,.6);transition:all .2s;background:none;white-space:nowrap}
+.cloud-btn:hover{color:#fff;background:rgba(255,255,255,.1)}
+.cloud-btn.azure.active{color:#fff;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3)}
+.cloud-btn.aws.active{color:#fff;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3)}
+.cloud-btn.gcp.active{color:#fff;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3)}
+.cloud-logo-sm{width:18px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.cloud-logo-sm.azure{background:#0078d4;color:#fff}
+.cloud-logo-sm.aws{background:#ff9900;color:#232f3e}
+.cloud-logo-sm.gcp{background:#4285f4;color:#fff}
+.topnav-live{font-size:11px;color:#7eed8a;border:1px solid #7eed8a44;background:#7eed8a18;border-radius:20px;padding:3px 9px;white-space:nowrap;flex-shrink:0}
+
+/* ── LAYOUT SHELL ── */
+.shell{display:flex;flex:1;min-height:0}
+
+/* ── LEFT SIDEBAR ── */
+.sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto;flex-shrink:0}
+.sidebar-section{padding:18px 14px 6px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+.topic-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:1px 6px;border-radius:10px;cursor:pointer;border:none;background:none;font-family:inherit;font-size:13.5px;font-weight:500;color:var(--text2);transition:all .18s;text-align:left;width:calc(100% - 12px)}
+.topic-btn:hover{background:var(--cc);color:var(--text)}
+.topic-btn.active{background:var(--cc);color:var(--ca);font-weight:600}
+.topic-btn.active .topic-icon-wrap{background:var(--ca);color:#fff}
+.topic-icon-wrap{width:32px;height:32px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:all .2s}
+.topic-label{flex:1;min-width:0}
+.topic-desc-sm{font-size:11px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-divider{margin:8px 14px;height:1px;background:var(--border)}
+.sidebar-views{padding:8px 6px 6px}
+.view-btn{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;cursor:pointer;border:none;background:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--text3);transition:all .15s;width:100%;text-align:left}
+.view-btn:hover{background:var(--surface2);color:var(--text)}
+.view-btn.active{color:var(--ca);font-weight:600}
+.view-dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .15s}
+.view-btn.active .view-dot{background:var(--ca)}
+
+/* ── MAIN CONTENT ── */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── HERO ── */
+.hero{padding:36px 2rem 32px;text-align:center;position:relative;overflow:hidden;transition:background .35s}
+.hero-azure{background:linear-gradient(135deg,#004578 0%,#005a9e 55%,#0078d4 100%)}
+.hero-aws{background:linear-gradient(135deg,#232f3e 0%,#1a4971 55%,#146eb4 100%)}
+.hero-gcp{background:linear-gradient(135deg,#0d47a1 0%,#1565c0 55%,#1a73e8 100%)}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 60L60 0M-10 10L10-10M50 70L70 50' stroke='rgba(255,255,255,0.04)' stroke-width='1'/%3E%3C/svg%3E");pointer-events:none}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 14px;margin-bottom:12px;font-size:12px;color:rgba(255,255,255,.8);font-weight:500}
+.hero-dot{width:6px;height:6px;background:#7eed8a;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(22px,3.5vw,38px);font-weight:800;color:#fff;line-height:1.1;margin-bottom:9px;letter-spacing:-.02em}
+.hero h1 span{color:#90caf9}
+.hero p{font-size:15px;color:rgba(255,255,255,.75);max-width:480px;margin:0 auto 16px;line-height:1.6}
+.hero-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
+.hero-chip{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;font-size:11.5px;font-weight:500;color:rgba(255,255,255,.85)}
+
+/* ── DETAIL HERO ── */
+#detail-hero-bar{display:none}
+.detail-hero{padding:26px 2rem 22px;display:flex;align-items:center;gap:22px}
+.detail-hero.azure{background:linear-gradient(135deg,#004578,#0078d4)}
+.detail-hero.aws{background:linear-gradient(135deg,#232f3e,#146eb4)}
+.detail-hero.gcp{background:linear-gradient(135deg,#0d47a1,#1a73e8)}
+.detail-icon{width:90px;height:90px;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.detail-hero h1{font-family:'Syne',sans-serif;font-size:clamp(19px,3vw,28px);font-weight:800;color:#fff;margin-bottom:3px}
+.detail-hero p{font-size:13px;color:rgba(255,255,255,.75)}
+
+/* ── CONTENT AREA ── */
+.content{flex:1;overflow-y:auto;padding:2rem 1.5rem 3rem;max-width:940px;width:100%}
+.content.centered{margin:0 auto}
+
+/* ── PROGRESS / BREADCRUMB ── */
+.prog-wrap{margin-bottom:1.25rem}
+.prog-track{display:flex;gap:4px;margin-bottom:6px}
+.p-step{flex:1;height:5px;background:var(--border);border-radius:3px;transition:background .4s}
+.p-step.done{background:var(--ca)}
+.p-step.active{background:var(--ca);opacity:.4}
+.prog-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--text3);font-weight:500}
+.breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-bottom:1rem;min-height:26px}
+.bc-chip{background:var(--cc);border:1px solid var(--cd);border-radius:20px;padding:3px 10px;font-size:11.5px;color:var(--cb);font-weight:500;display:flex;align-items:center;gap:5px;transition:all .3s}
+.bc-dot{width:5px;height:5px;background:var(--ca);border-radius:50%}
+.bc-sep{font-size:11px;color:var(--text3)}
+.back-btn{background:none;border:none;cursor:pointer;font-size:13.5px;color:var(--text3);font-family:inherit;display:inline-flex;align-items:center;gap:5px;padding:0 0 .8rem;transition:color .15s}
+.back-btn:hover{color:var(--ca)}
+
+/* ── QUESTION CARD ── */
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:26px;margin-bottom:1rem;box-shadow:var(--shadow);animation:slideUp .28s cubic-bezier(.22,.68,0,1.2)}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.q-eyebrow{font-size:11.5px;font-weight:700;color:var(--ca);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;transition:color .3s}
+.q-title{font-family:'Syne',sans-serif;font-size:clamp(18px,2.5vw,23px);font-weight:700;color:var(--text);line-height:1.25;margin-bottom:10px}
+.q-hint{font-size:13.5px;color:var(--text2);line-height:1.6;margin-bottom:18px;padding:10px 14px;background:var(--surface2);border-left:3px solid var(--cd);border-radius:0 6px 6px 0;transition:border-color .3s}
+.options{display:grid;gap:9px}
+.options.two-col{grid-template-columns:1fr 1fr}
+.opt{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:15px 40px 15px 15px;cursor:pointer;display:flex;align-items:flex-start;gap:13px;text-align:left;transition:border-color .18s,box-shadow .18s,transform .12s,background .18s;position:relative;font-family:inherit;width:100%}
+.opt:hover{border-color:var(--ca);background:var(--cc);box-shadow:var(--shadow-h);transform:translateY(-2px)}
+.opt-icon{width:42px;height:42px;border-radius:10px;background:var(--cd);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;transition:background .3s;overflow:hidden}
+.opt-label{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;font-family:'Syne',sans-serif}
+.opt-desc{font-size:12.5px;color:var(--text2);line-height:1.4}
+.opt-arrow{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--border);transition:color .15s,transform .15s}
+.opt:hover .opt-arrow{color:var(--ca);transform:translateY(-50%) translateX(3px)}
+
+/* ── RESULT ── */
+.result-summary{animation:slideUp .32s cubic-bezier(.22,.68,0,1.2)}
+.rs-header{border-radius:var(--r) var(--r) 0 0;padding:22px 26px;display:flex;align-items:flex-start;gap:16px}
+.rs-header.azure{background:linear-gradient(135deg,#004578,#0078d4)}
+.rs-header.aws{background:linear-gradient(135deg,#232f3e,#146eb4)}
+.rs-header.gcp{background:linear-gradient(135deg,#0d47a1,#1a73e8)}
+.rs-badge{width:88px;height:88px;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rs-hgroup h2{font-family:'Syne',sans-serif;font-size:clamp(17px,3vw,24px);font-weight:800;color:#fff;margin-bottom:4px}
+.rs-tagline{font-size:13px;color:rgba(255,255,255,.75)}
+.rs-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.rs-chip{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:20px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.05em}
+.rs-body{background:var(--surface);border:1px solid var(--ca);border-top:none;border-radius:0 0 var(--r) var(--r);padding:20px 26px;box-shadow:var(--shadow);transition:border-color .3s}
+.why-box{background:var(--cc);border:1px solid var(--cd);border-radius:var(--rsm);padding:13px 15px;font-size:14px;color:var(--text);line-height:1.65;margin-bottom:16px;transition:background .3s,border-color .3s}
+.action-row{display:flex;flex-wrap:wrap;gap:10px}
+.btn-primary{display:inline-flex;align-items:center;gap:6px;background:var(--ca);color:#fff;border:none;padding:11px 20px;border-radius:var(--rsm);font-size:13.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .15s;text-decoration:none}
+.btn-primary:hover{opacity:.88}
+.btn-ghost{display:inline-flex;align-items:center;gap:6px;background:var(--surface);color:var(--text2);border:1.5px solid var(--border);padding:10px 18px;border-radius:var(--rsm);font-size:13.5px;font-weight:500;font-family:inherit;cursor:pointer;transition:border-color .15s,color .15s}
+.btn-ghost:hover{border-color:var(--ca);color:var(--ca)}
+
+/* ── DETAIL ── */
+#detail-page{display:none;flex-direction:column;flex:1}
+#detail-page.active{display:flex}
+.tab-bar{display:flex;gap:2px;border-bottom:2px solid var(--border);margin-bottom:1.5rem;overflow-x:auto}
+.tab-btn{padding:10px 16px;font-size:13.5px;font-weight:500;color:var(--text3);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s;white-space:nowrap}
+.tab-btn:hover{color:var(--ca)}
+.tab-btn.active{color:var(--ca);border-bottom-color:var(--ca);font-weight:600}
+.tab-panel{display:none;animation:slideUp .22s ease}
+.tab-panel.active{display:block}
+.diagram-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem 1rem;overflow-x:auto;margin-bottom:1rem}
+.diagram-wrap svg{display:block;width:100%;max-width:780px;margin:0 auto;min-width:460px}
+@keyframes flowR{from{stroke-dashoffset:40}to{stroke-dashoffset:0}}
+.fa{stroke-dasharray:8 4;animation:flowR 1s linear infinite}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.feat-item{display:flex;align-items:flex-start;gap:8px;background:var(--surface2);padding:10px 12px;border-radius:var(--rsm);border:1px solid var(--border);font-size:13px;color:var(--text2);line-height:1.4}
+.feat-check{color:var(--green);font-size:14px;flex-shrink:0;margin-top:1px}
+.uw-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.uw-box{padding:12px 14px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--surface2)}
+.uw-box.green{border-color:#a3d9a3;background:var(--green-bg)}
+.uw-box.red{border-color:#f5a8ab;background:var(--red-bg)}
+.uw-title{font-size:11px;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.uw-box.green .uw-title{color:var(--green)}
+.uw-box.red .uw-title{color:var(--red)}
+.uw-list{list-style:none;display:flex;flex-direction:column;gap:4px}
+.uw-list li{font-size:12.5px;color:var(--text2);display:flex;align-items:flex-start;gap:5px}
+.uw-list li::before{content:'›';color:var(--text3);flex-shrink:0}
+.note-box{background:#fffbe6;border:1px solid #f5d87a;border-radius:var(--rsm);padding:11px 13px;font-size:13px;color:#5a4000;line-height:1.55;display:flex;gap:9px;align-items:flex-start;margin-bottom:11px}
+.warn-box{background:#fce8e9;border:1px solid #f5a8ab;border-radius:var(--rsm);padding:11px 13px;font-size:13px;color:#6b0c0e;line-height:1.55;display:flex;gap:9px;align-items:flex-start;margin-bottom:11px}
+
+/* ── GALLERY ── */
+.gallery-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem}
+.gf-btn{padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text3);transition:all .18s;font-family:inherit}
+.gf-btn.fa-all{border-color:var(--text2);color:var(--text);background:var(--surface2)}
+.gf-btn.fa-azure{border-color:#0078d4;color:#0078d4;background:#ebf4fc}
+.gf-btn.fa-aws{border-color:#ff9900;color:#e07000;background:#fff8ed}
+.gf-btn.fa-gcp{border-color:#4285f4;color:#1a73e8;background:#e8f0fe}
+.gsec{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin:1.25rem 0 .75rem;display:flex;align-items:center;gap:8px}
+.gsec::after{content:'';flex:1;height:1px;background:var(--border)}
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:.5rem}
+.gcard{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .18s,box-shadow .18s,transform .12s}
+.gcard:hover{box-shadow:var(--shadow-h);transform:translateY(-3px)}
+.gcard.azure:hover{border-color:#0078d4}
+.gcard.aws:hover{border-color:#ff9900}
+.gcard.gcp:hover{border-color:#4285f4}
+.gc-head{padding:16px 12px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.gc-head.azure{background:linear-gradient(135deg,#004578,#0078d4)}
+.gc-head.aws{background:linear-gradient(135deg,#232f3e,#146eb4)}
+.gc-head.gcp{background:linear-gradient(135deg,#0d47a1,#1a73e8)}
+.gc-icon{width:80px;height:80px;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.gc-head h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;line-height:1.2}
+.gc-head p{font-size:11.5px;color:rgba(255,255,255,.75)}
+.gc-body{padding:11px}
+.gc-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px}
+.gc-tag{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:10px}
+.gc-tag.azure{background:#ebf4fc;border:1px solid #cce4f6;color:#004578}
+.gc-tag.aws{background:#fff8ed;border:1px solid #ffd78a;color:#7a4200}
+.gc-tag.gcp{background:#e8f0fe;border:1px solid #c5d8fc;color:#1a56b0}
+.gc-desc{font-size:12.5px;color:var(--text2);line-height:1.4;margin-bottom:8px}
+.gc-cta{font-size:12px;font-weight:600;color:var(--ca);display:flex;align-items:center;gap:3px}
+
+/* ── COMPARE TABLES ── */
+.section-title{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;color:var(--text)}
+.section-sub{font-size:13.5px;color:var(--text2);line-height:1.5;margin-top:4px}
+.cmp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-top:1.25rem}
+.cmp-head{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 18px}
+.cmp-head h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text)}
+.cmp-head p{font-size:12px;color:var(--text3);margin-top:1px}
+.ct{width:100%;border-collapse:collapse;font-size:13px}
+.ct th{padding:9px 13px;text-align:left;font-weight:600;font-size:11.5px;letter-spacing:.04em}
+.ct th.az{background:#004578;color:#fff}
+.ct th.aw{background:#232f3e;color:#fff}
+.ct th.gc{background:#0d47a1;color:#fff}
+.ct th.hd{background:var(--surface2);color:var(--text2)}
+.ct td{padding:9px 13px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.4}
+.ct tr:last-child td{border-bottom:none}
+.ct tr:hover td{background:#f7faff}
+.ct td:first-child{font-weight:600;color:var(--text);background:var(--surface2)}
+
+footer{background:#1a2535;color:rgba(255,255,255,.4);text-align:center;padding:13px;font-size:12px}
+footer a{color:rgba(255,255,255,.6);text-decoration:none}
+footer a:hover{color:#fff}
+
+/* ── MOBILE ── */
+@media(max-width:700px){
+  .sidebar{display:none}
+  .topnav-title{display:none}
+  .topnav-live{display:none}
+  .cloud-btn{padding:5px 10px;font-size:11.5px}
+  .hero{padding:22px .75rem 18px}
+  .content{padding:1rem .75rem 2rem}
+  .q-card{padding:18px 14px}
+  .feat-grid,.uw-grid,.options.two-col,.ggrid{grid-template-columns:1fr}
+  .action-row{flex-direction:column}
+  .btn-primary,.btn-ghost{width:100%;justify-content:center}
+  .detail-hero{padding:18px 1rem 14px;gap:12px;flex-wrap:wrap}
+}
+@media(hover:none){
+  .opt{min-height:58px}
+  .gcard:hover{transform:none}
+  .opt:hover{transform:none}
+}
+
+/* ── NTMS NAV EXTRAS ── */
+.nav-link-ntms{color:#90caf9;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;padding:4px 0;transition:color .15s}
+.nav-link-ntms:hover{color:#fff}
+.nav-batch-tag{background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);color:#ffd700;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;font-family:'Syne',sans-serif}
+.nav-link-about{color:rgba(255,255,255,.75);font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;padding:4px 0;transition:color .15s}
+.nav-link-about:hover{color:#fff}
+/* Auth button in nav */
+.auth-btn{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:20px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:1.5px solid rgba(255,255,255,.3);color:#fff;background:rgba(255,255,255,.1);transition:all .18s;white-space:nowrap}
+.auth-btn:hover{background:rgba(255,255,255,.2)}
+.auth-btn.signed-in{background:rgba(100,220,100,.15);border-color:rgba(100,220,100,.4);color:#7eed8a}
+/* Sidebar auth badge */
+.sidebar-auth{padding:10px 14px;margin:4px 6px;border-radius:10px;background:var(--cc);border:1px solid var(--cd)}
+.sidebar-auth-name{font-size:12.5px;font-weight:600;color:var(--ca);margin-bottom:2px}
+.sidebar-auth-email{font-size:11px;color:var(--text3)}
+.sidebar-auth-btn{font-size:11.5px;color:var(--text3);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;padding:0;margin-top:4px}
+/* Topic lock badge */
+.topic-lock{font-size:11px;background:#fce8e9;color:#a4262c;border-radius:10px;padding:1px 7px;font-weight:600;margin-left:auto;flex-shrink:0}
+.topic-btn.locked{opacity:.6;cursor:default}
+/* Login prompt */
+.login-prompt{margin:1rem;padding:14px;background:#fff8ed;border:1px solid #ffd78a;border-radius:10px;text-align:center}
+.login-prompt p{font-size:13px;color:#5a3000;margin-bottom:10px;line-height:1.5}
+.login-prompt button{background:#0078d4;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+@media(max-width:700px){.nav-batch-tag{display:none}.nav-link-ntms{display:none}.nav-link-about{display:none}}
+
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav" id="topnav">
+  <div class="topnav-brand" onclick="navHome()">
+    <div class="topnav-logo" id="nav-logo">A</div>
+    <span class="topnav-title">Cloud Architecture Guide</span>
+  </div>
+  <!-- NTMS branding links -->
+  <a href="https://ntmscloud.in" target="_blank" class="nav-link-ntms">🌐 ntmscloud.in</a>
+  <span class="nav-batch-tag">NTMS Azure Batch</span>
+  <a href="#" onclick="showAboutModal();return false;" class="nav-link-about">About</a>
+  <!-- Cloud switcher -->
+  <div class="topnav-cloud" id="cloud-btns">
+    <button class="cloud-btn azure active" onclick="setCloud('azure')" id="cbtn-azure"><div class="cloud-logo-sm azure">A</div>Azure</button>
+    <button class="cloud-btn aws" onclick="setCloud('aws')" id="cbtn-aws"><div class="cloud-logo-sm aws">▲</div>AWS</button>
+    <button class="cloud-btn gcp" onclick="setCloud('gcp')" id="cbtn-gcp"><div class="cloud-logo-sm gcp">G</div>GCP</button>
+  </div>
+  <!-- Auth button -->
+  <div id="auth-nav-btn"></div>
+  <span class="topnav-live">● Live</span>
+</nav>
+
+<!-- ABOUT MODAL -->
+<div id="about-modal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);backdrop-filter:blur(4px)" onclick="if(event.target===this)closeAboutModal()">
+  <div style="background:#fff;border-radius:16px;max-width:560px;width:90%;margin:6vh auto;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.3)">
+    <div style="background:linear-gradient(135deg,#004578,#0078d4);padding:24px 28px 20px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:4px">NTMS Training Institute</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.75)">Azure DevOps + Infrastructure as Code with AI</div>
+      </div>
+      <button onclick="closeAboutModal()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <div style="padding:24px 28px">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#0d1b2a;margin-bottom:10px">About This Guide</div>
+      <p style="font-size:14px;color:#3a5068;line-height:1.7;margin-bottom:14px">
+        This interactive Cloud Architecture Decision Guide is built for the <strong>NTMS Azure Batch</strong> — a hands-on DevOps training programme covering Azure, AWS, and GCP services with real-world architecture patterns.
+      </p>
+      <p style="font-size:14px;color:#3a5068;line-height:1.7;margin-bottom:20px">
+        Use the decision trees to find the right cloud service for your workload, explore animated architecture diagrams, and compare equivalent services across all three clouds.
+      </p>
+      <div style="background:#f0f4f8;border-radius:10px;padding:14px 16px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:#6a8ba4;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Course Coverage</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <div style="font-size:13px;color:#3a5068">⚖️ Load Balancers</div>
+          <div style="font-size:13px;color:#3a5068">🗄️ Storage</div>
+          <div style="font-size:13px;color:#3a5068">🗃️ Databases</div>
+          <div style="font-size:13px;color:#3a5068">⚙️ App Hosting</div>
+          <div style="font-size:13px;color:#3a5068">🔄 DevOps</div>
+          <div style="font-size:13px;color:#3a5068">🔐 Security (coming)</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="https://ntmscloud.in" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#0078d4;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:13.5px;font-weight:600">🌐 Visit ntmscloud.in</a>
+        <a href="mailto:info@ntmscloud.in" style="display:inline-flex;align-items:center;gap:6px;background:#f0f4f8;color:#3a5068;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:13.5px;font-weight:600;border:1px solid #dde8f0">✉️ Contact</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT SHELL -->
+<div class="shell">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div id="sidebar-auth-section"></div>
+    <div class="sidebar-section">Topics</div>
+    <div id="topic-nav"></div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Views</div>
+    <div class="sidebar-views" id="view-nav"></div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <div class="main" id="main-area">
+
+    <!-- HERO (shown on non-detail pages) -->
+    <div class="hero hero-azure" id="main-hero">
+      <div class="hero-tag"><span class="hero-dot"></span><span id="hero-tag-txt">Azure · Decision Guide</span></div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:4px;letter-spacing:.02em">NTMS:</div><h1><span id="hero-hl">Azure</span> Architecture Guide</h1>
+      <p id="hero-p">Select a topic from the sidebar, choose your cloud, and get the right service recommendation.</p>
+      <div class="hero-chips" id="hero-chips"></div>
+    </div>
+
+    <!-- DETAIL HERO -->
+    <div id="detail-hero-bar">
+      <div class="detail-hero azure" id="dh-inner">
+        <div class="detail-icon" id="dh-icon"></div>
+        <div><h1 id="dh-title"></h1><p id="dh-sub"></p></div>
+      </div>
+    </div>
+
+    <!-- CONTENT PAGES -->
+    <div class="content centered" id="page-tree" style="display:none">
+      <div id="bc-el"></div><div id="prog-el"></div><div id="tree-el"></div>
+    </div>
+    <div class="content centered" id="page-gallery" style="display:none">
+      <div style="margin-bottom:1rem"><h2 class="section-title" id="gal-title">All Services</h2><p class="section-sub">Click any card for the full animated diagram, features, and guidance.</p></div>
+      <div class="gallery-filter">
+        <button class="gf-btn fa-all" onclick="fGallery('all')" id="gf-all">All clouds</button>
+        <button class="gf-btn" onclick="fGallery('azure')" id="gf-azure">☁️ Azure</button>
+        <button class="gf-btn" onclick="fGallery('aws')" id="gf-aws">▲ AWS</button>
+        <button class="gf-btn" onclick="fGallery('gcp')" id="gf-gcp">● GCP</button>
+      </div>
+      <div id="gallery-el"></div>
+    </div>
+    <div class="content centered" id="page-compare" style="display:none">
+      <div id="compare-el"></div>
+    </div>
+    <div id="detail-page">
+      <div class="content centered">
+        <button class="back-btn" id="detail-back">← Back</button>
+        <div class="tab-bar" id="dtabs"></div>
+        <div id="dpanels"></div>
+      </div>
+    </div>
+
+  </div><!-- end .main -->
+</div><!-- end .shell -->
+
+<footer>NTMS Cloud Architecture Guide · <a href="https://ntmscloud.in" target="_blank">ntmscloud.in</a> · NTMS Azure Batch · Built for learning sessions · <a href="https://azure.microsoft.com" target="_blank">Azure</a> · <a href="https://aws.amazon.com" target="_blank">AWS</a> · <a href="https://cloud.google.com" target="_blank">GCP</a></footer>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// REGISTRY — auto-discovers all loaded topic modules
+// Format: window.TOPIC_<ID> = { META, ICONS, DIAG, SVC, TREE, COMPARE_HTML }
+// To add a topic: load a new <script> and it appears here automatically.
+// ═══════════════════════════════════════════════════════
+const REGISTRY = [];
+for(const k of Object.keys(window)){
+  if(k.startsWith('TOPIC_') && window[k] && window[k].META) REGISTRY.push(window[k]);
+}
+REGISTRY.sort((a,b)=>a.META.label.localeCompare(b.META.label));
+
+// ── THEME ──
+const THEMES={azure:{ca:'#0078d4',cb:'#004578',cc:'#ebf4fc',cd:'#cce4f6',logo:'A',hl:'Azure'},aws:{ca:'#e07000',cb:'#232f3e',cc:'#fff8ed',cd:'#ffd78a',logo:'▲',hl:'AWS'},gcp:{ca:'#1a73e8',cb:'#0d47a1',cc:'#e8f0fe',cd:'#c5d8fc',logo:'G',hl:'GCP'}};
+let ac='azure', activeTopic=null, activeView='tree', gf='all', detailFrom='tree';
+
+function applyTheme(cloud){
+  const t=THEMES[cloud];const r=document.documentElement.style;
+  r.setProperty('--ca',t.ca);r.setProperty('--cb',t.cb);r.setProperty('--cc',t.cc);r.setProperty('--cd',t.cd);
+  document.getElementById('topnav').style.background=t.cb;
+  document.getElementById('nav-logo').style.background=t.ca;
+  document.getElementById('nav-logo').textContent=t.logo;
+}
+
+// ── CLOUD SWITCH ──
+function setCloud(cloud){
+  ac=cloud;applyTheme(cloud);
+  document.querySelectorAll('.cloud-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('cbtn-'+cloud).classList.add('active');
+  // update hero
+  const hero=document.getElementById('main-hero');
+  hero.className='hero hero-'+cloud;
+  document.getElementById('hero-hl').textContent=THEMES[cloud].hl;
+  document.getElementById('hero-tag-txt').textContent=THEMES[cloud].hl+' · Decision Guide';
+  // update hero chips if topic active
+  if(activeTopic){
+    const chips=activeTopic.META.chips[cloud]||[];
+    document.getElementById('hero-chips').innerHTML=chips.map(c=>`<span class="hero-chip">${c}</span>`).join('');
+  }
+  // re-render current view
+  if(activeView==='tree') renderTree();
+  else if(activeView==='gallery') renderGallery(gf);
+}
+
+// ── SIDEBAR BUILD ──
+function buildSidebar(){
+  const tnav=document.getElementById('topic-nav');
+  tnav.innerHTML=REGISTRY.map(m=>`
+    <button class="topic-btn" id="tbtn-${m.META.id}" onclick="selectTopic('${m.META.id}')">
+      <div class="topic-icon-wrap">${m.META.icon}</div>
+      <div class="topic-label">
+        <div>${m.META.label}</div>
+        <div class="topic-desc-sm">${m.META.desc.split(' — ')[0]}</div>
+      </div>
+    </button>`).join('');
+}
+
+function buildViewNav(topic){
+  const views=[
+    {id:'tree',icon:'🌳',label:'Decision Tree'},
+    {id:'gallery',icon:'🗺️',label:'All Services'},
+    {id:'compare',icon:'⚖️',label:'Compare'},
+  ];
+  document.getElementById('view-nav').innerHTML=views.map(v=>`
+    <button class="view-btn${activeView===v.id?' active':''}" id="vbtn-${v.id}" onclick="switchView('${v.id}')">
+      <span class="view-dot"></span>${v.icon} ${v.label}
+    </button>`).join('');
+}
+
+// ── TOPIC SELECT ──
+function selectTopic(id){
+  activeTopic=REGISTRY.find(m=>m.META.id===id);
+  if(!activeTopic) return;
+  // reset tree state for this topic
+  TS[id]={azure:{h:[],c:null},aws:{h:[],c:null},gcp:{h:[],c:null}};
+  // sidebar highlight
+  document.querySelectorAll('.topic-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tbtn-'+id).classList.add('active');
+  // update hero
+  const chips=activeTopic.META.chips[ac]||[];
+  document.getElementById('hero-chips').innerHTML=chips.map(c=>`<span class="hero-chip">${c}</span>`).join('');
+  document.getElementById('hero-p').textContent=activeTopic.META.heroSub;
+  document.getElementById('hero-hl').textContent=THEMES[ac].hl;
+  document.getElementById('main-hero').className='hero hero-'+ac;
+  buildViewNav(activeTopic);
+  switchView('tree');
+}
+
+// ── VIEW SWITCH ──
+function switchView(v){
+  activeView=v;
+  // hide detail
+  document.getElementById('detail-page').style.display='none';
+  document.getElementById('detail-hero-bar').style.display='none';
+  document.getElementById('main-hero').style.display='block';
+  // hide all pages
+  ['tree','gallery','compare'].forEach(p=>document.getElementById('page-'+p).style.display='none');
+  document.getElementById('page-'+v).style.display='block';
+  // update view nav
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  const vb=document.getElementById('vbtn-'+v);if(vb)vb.classList.add('active');
+  document.querySelectorAll('.view-btn .view-dot').forEach(d=>d.style.background='var(--border)');
+  if(vb){const dot=vb.querySelector('.view-dot');if(dot)dot.style.background='var(--ca)';}
+  if(v==='tree') renderTree();
+  else if(v==='gallery') renderGallery(gf);
+  else if(v==='compare') renderCompare();
+}
+function navHome(){
+  if(!activeTopic){return;}
+  switchView('tree');
+}
+
+// ── TREE STATE ──
+const TS={};
+function cs(){return (TS[activeTopic.META.id]||{})[ac]||{h:[],c:null};}
+function getTree(){return activeTopic.TREE[ac]||{};}
+
+// ── RENDER TREE ──
+function renderTree(){
+  if(!activeTopic) return;
+  const tid=activeTopic.META.id;
+  if(!TS[tid]) TS[tid]={azure:{h:[],c:null},aws:{h:[],c:null},gcp:{h:[],c:null}};
+  const s=cs();
+  if(!s.c) s.c=getTree().root;
+  renderBC();renderProg(s.h.length);
+  if(s.c&&s.c.opts) renderQ(s.c);
+}
+function renderBC(){
+  const crumbs=cs().h.filter(x=>x.cr).map(x=>x.cr);
+  const el=document.getElementById('bc-el');
+  if(!crumbs.length){el.innerHTML='';return;}
+  el.innerHTML='<div class="breadcrumb">'+crumbs.map((c,i)=>(i?'<span class="bc-sep">›</span>':'')+`<div class="bc-chip"><span class="bc-dot"></span>${c}</div>`).join('')+'</div>';
+}
+function renderProg(done){
+  const tot=4;
+  document.getElementById('prog-el').innerHTML=`<div class="prog-wrap"><div class="prog-track">${Array.from({length:tot},(_,i)=>`<div class="p-step${i<done?' done':i===done?' active':''}"></div>`).join('')}</div><div class="prog-meta"><span>Step ${Math.min(done+1,tot)} of ${tot}</span><span>${Math.round(done/tot*100)}% complete</span></div></div>`;
+}
+function renderQ(node){
+  const back=cs().h.length?`<button class="back-btn" onclick="goBack()">← Back</button>`:'';
+  document.getElementById('tree-el').innerHTML=back+`<div class="q-card"><div class="q-eyebrow">${node.ey}</div><div class="q-title">${node.q}</div><div class="q-hint">${node.h}</div><div class="options${node.two?' two-col':''}">${node.opts.map((o,i)=>`<button class="opt" onclick="choose(${i})"><div class="opt-icon">${o.ic}</div><div style="flex:1;min-width:0"><div class="opt-label">${o.lb}</div><div class="opt-desc">${o.ds}</div></div><span class="opt-arrow">›</span></button>`).join('')}</div></div>`;
+}
+function renderResult(rk){
+  const rm=getTree().results[rk];if(!rm) return;
+  const d=activeTopic.SVC[rm.k];
+  const ICONS=activeTopic.ICONS;
+  const back=`<button class="back-btn" onclick="goBack()">← Back</button>`;
+  document.getElementById('prog-el').innerHTML='';
+  document.getElementById('tree-el').innerHTML=back+`<div class="result-summary"><div class="rs-header ${ac}"><div class="rs-badge">${ICONS[rm.k]||d.ic}</div><div class="rs-hgroup"><h2>${d.nm}</h2><div class="rs-tagline">${d.tl}</div><div class="rs-chips">${d.tg.map(t=>`<span class="rs-chip">${t}</span>`).join('')}</div></div></div><div class="rs-body"><div class="why-box">${rm.w}</div><div class="action-row"><button class="btn-primary" onclick="showDetail('${rm.k}','tree')">🔍 Full diagram & details</button><button class="btn-ghost" onclick="restartTree()">↺ Start over</button><a class="btn-ghost" href="${d.doc}" target="_blank">📖 Docs ↗</a></div></div></div>`;
+}
+function choose(i){
+  const s=cs();const o=s.c.opts[i];
+  s.h.push({node:s.c,cr:o.cr});const nx=o.nx;
+  const tree=getTree();
+  if(tree.results&&tree.results[nx]){s.c={type:'result',key:nx};renderBC();renderResult(nx);}
+  else if(tree.nodes&&tree.nodes[nx]){s.c=tree.nodes[nx];renderTree();}
+}
+function goBack(){
+  const s=cs();if(!s.h.length)return;
+  const p=s.h.pop();s.c=p.node;renderTree();
+}
+function restartTree(){
+  const tid=activeTopic.META.id;
+  TS[tid][ac]={h:[],c:getTree().root};renderTree();
+}
+
+// ── DETAIL ──
+function showDetail(key,from){
+  detailFrom=from;
+  const d=activeTopic.SVC[key];
+  const dcloud=d.cl;
+  setCloud(dcloud);
+  ['tree','gallery','compare'].forEach(p=>document.getElementById('page-'+p).style.display='none');
+  const dp=document.getElementById('detail-page');
+  dp.style.display='flex';dp.style.flexDirection='column';
+  document.getElementById('main-hero').style.display='none';
+  document.getElementById('detail-hero-bar').style.display='block';
+  const dh=document.getElementById('dh-inner');
+  dh.className='detail-hero '+dcloud;
+  document.getElementById('dh-icon').innerHTML=activeTopic.ICONS[key]||d.ic;
+  document.getElementById('dh-title').textContent=d.nm;
+  document.getElementById('dh-sub').textContent=d.tl;
+  document.getElementById('detail-back').onclick=()=>switchView(from==='gallery'?'gallery':'tree');
+  const tabs=['Architecture','Features','When to use'];
+  document.getElementById('dtabs').innerHTML=tabs.map((t,i)=>`<button class="tab-btn${i===0?' active':''}" onclick="swTab(${i})">${t}</button>`).join('');
+  const dg=activeTopic.DIAG[d.dk];
+  const diagH=dg?`<div class="diagram-wrap">${dg()}</div>`:'';
+  const warn=d.nt&&d.nt.startsWith('⚠️')?`<div class="warn-box"><span>⚠️</span><span>${d.nt.slice(3)}</span></div>`:'';
+  const tip=d.nt&&d.nt.startsWith('💡')?`<div class="note-box"><span>💡</span><span>${d.nt.slice(3)}</span></div>`:'';
+  const combo=d.nt&&d.nt.startsWith('🔗')?`<div class="note-box"><span>🔗</span><span>${d.nt.slice(3)}</span></div>`:'';
+  const feats=`<div class="feat-grid">${d.ft.map(f=>`<div class="feat-item"><span class="feat-check">✓</span>${f}</div>`).join('')}</div>`;
+  const uw=`${warn}${tip}${combo}<div class="uw-grid"><div class="uw-box green"><div class="uw-title">✓ Use when</div><ul class="uw-list">${d.uw.map(u=>`<li>${u}</li>`).join('')}</ul></div><div class="uw-box red"><div class="uw-title">✗ Not for</div><p style="font-size:13px;color:#6b3030;line-height:1.5">${d.nf}</p></div></div><div style="margin-top:12px"><a class="btn-primary" href="${d.doc}" target="_blank">📖 Official Docs ↗</a></div>`;
+  document.getElementById('dpanels').innerHTML=`<div class="tab-panel active" id="p0">${diagH}<p style="font-size:14px;color:var(--text2);line-height:1.7;margin-top:10px">${d.ds}</p></div><div class="tab-panel" id="p1">${feats}</div><div class="tab-panel" id="p2">${uw}</div>`;
+}
+function swTab(i){document.querySelectorAll('.tab-btn').forEach((b,j)=>b.classList.toggle('active',j===i));document.querySelectorAll('.tab-panel').forEach((p,j)=>p.classList.toggle('active',j===i));}
+
+// ── GALLERY ──
+function fGallery(f){
+  gf=f;
+  ['all','azure','aws','gcp'].forEach(c=>{const btn=document.getElementById('gf-'+c);if(btn)btn.className='gf-btn'+(f===c?' fa-'+c:'');});
+  renderGallery(f);
+}
+function renderGallery(filter){
+  if(!activeTopic) return;
+  const SVC=activeTopic.SVC, ICONS=activeTopic.ICONS;
+  document.getElementById('gal-title').textContent=activeTopic.META.label+' — All Services';
+  const el=document.getElementById('gallery-el');
+  let html='';
+  const order=['azure','aws','gcp'];
+  const labels={azure:'☁️ Azure',aws:'▲ AWS',gcp:'● GCP'};
+  for(const cloud of order){
+    if(filter!=='all'&&filter!==cloud) continue;
+    const entries=Object.entries(SVC).filter(([k,v])=>v.cl===cloud);
+    if(!entries.length) continue;
+    html+=`<div class="gsec">${labels[cloud]}</div><div class="ggrid">`;
+    html+=entries.map(([k,d])=>`<div class="gcard ${cloud}" onclick="showDetail('${k}','gallery')"><div class="gc-head ${cloud}"><div class="gc-icon">${ICONS[k]||d.ic}</div><h3>${d.nm}</h3><p>${d.tl.split('·')[0].trim()}</p></div><div class="gc-body"><div class="gc-tags">${d.tg.map(t=>`<span class="gc-tag ${cloud}">${t}</span>`).join('')}</div><div class="gc-desc">${d.ds}</div><div class="gc-cta">View diagram & details ›</div></div></div>`).join('');
+    html+='</div>';
+  }
+  el.innerHTML=html;
+}
+
+// ── COMPARE ──
+function renderCompare(){
+  if(!activeTopic) return;
+  document.getElementById('compare-el').innerHTML=activeTopic.COMPARE_HTML;
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTH — fetch user state from server, gate topic visibility
+// ═══════════════════════════════════════════════════════
+let authState = { authenticated: false, protectedTopics: [] };
+
+async function initAuth() {
+  try {
+    const [meRes, topicsRes] = await Promise.all([
+      fetch('/api/auth/me'),
+      fetch('/api/auth/topics')
+    ]);
+    const me = await meRes.json();
+    const topicsData = await topicsRes.json();
+    authState = { ...me, ...topicsData };
+  } catch(e) {
+    // Server not available (local dev without server) — treat as anonymous
+    authState = { authenticated: false, protectedTopics: [] };
+  }
+  renderAuthNav();
+  renderSidebarAuth();
+  buildSidebar(); // rebuild with auth state
+}
+
+function renderAuthNav() {
+  const el = document.getElementById('auth-nav-btn');
+  if (!el) return;
+  if (authState.authenticated) {
+    const initials = (authState.name || 'U').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    el.innerHTML = `<button class="auth-btn signed-in" onclick="handleLogout()">
+      <span style="width:20px;height:20px;background:rgba(255,255,255,.2);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${initials}</span>
+      ${authState.name.split(' ')[0]} · Sign out
+    </button>`;
+  } else {
+    el.innerHTML = `<button class="auth-btn" onclick="handleLogin()">🔐 Sign in</button>`;
+  }
+}
+
+function renderSidebarAuth() {
+  const el = document.getElementById('sidebar-auth-section');
+  if (!el) return;
+  if (authState.authenticated) {
+    el.innerHTML = `<div class="sidebar-auth">
+      <div class="sidebar-auth-name">👤 ${authState.name}</div>
+      <div class="sidebar-auth-email">${authState.email}</div>
+      <button class="sidebar-auth-btn" onclick="handleLogout()">Sign out</button>
+    </div>`;
+  } else {
+    el.innerHTML = `<div class="sidebar-auth" style="background:#fff8ed;border-color:#ffd78a">
+      <div style="font-size:12px;color:#5a3000;margin-bottom:6px;font-weight:600">🔐 Sign in to unlock all topics</div>
+      <button class="sidebar-auth-btn" style="color:#0078d4;font-weight:600;font-size:12.5px" onclick="handleLogin()">Sign in with Microsoft →</button>
+    </div>`;
+  }
+}
+
+function handleLogin() {
+  window.location.href = '/api/auth/login?redirect=' + encodeURIComponent(window.location.pathname);
+}
+function handleLogout() {
+  window.location.href = '/api/auth/logout';
+}
+
+// Override buildSidebar to apply auth-gating
+function buildSidebar() {
+  const tnav = document.getElementById('topic-nav');
+  const protected_ = authState.protectedTopics || [];
+  const authed = authState.authenticated;
+
+  tnav.innerHTML = REGISTRY.map(m => {
+    const isLocked = !authed && protected_.includes(m.META.id);
+    return `<button class="topic-btn${isLocked ? ' locked' : ''}" id="tbtn-${m.META.id}"
+      onclick="${isLocked ? 'showLoginPrompt()' : `selectTopic('${m.META.id}')`}">
+      <div class="topic-icon-wrap">${m.META.icon}</div>
+      <div class="topic-label">
+        <div>${m.META.label}</div>
+        <div class="topic-desc-sm">${m.META.desc.split(' — ')[0]}</div>
+      </div>
+      ${isLocked ? '<span class="topic-lock">🔒</span>' : ''}
+    </button>`;
+  }).join('');
+}
+
+function showLoginPrompt() {
+  // Show a small prompt in the content area
+  ['tree','gallery','compare'].forEach(p => {
+    const el = document.getElementById('page-'+p);
+    if (el) el.style.display = 'none';
+  });
+  document.getElementById('page-tree').style.display = 'block';
+  document.getElementById('bc-el').innerHTML = '';
+  document.getElementById('prog-el').innerHTML = '';
+  document.getElementById('tree-el').innerHTML = `
+    <div style="max-width:480px;margin:2rem auto;text-align:center;padding:2rem 1.5rem;background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,80,160,.08);border:1px solid #dde8f0">
+      <div style="font-size:48px;margin-bottom:12px">🔐</div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#0d1b2a;margin-bottom:8px">Sign in to access this topic</h2>
+      <p style="font-size:14px;color:#3a5068;line-height:1.6;margin-bottom:20px">
+        This topic is available to authenticated NTMS students.<br/>Sign in with your Microsoft account to unlock all topics.
+      </p>
+      <button class="btn-primary" onclick="handleLogin()" style="margin:0 auto">🔐 Sign in with Microsoft</button>
+    </div>`;
+}
+
+// About modal
+function showAboutModal() { document.getElementById('about-modal').style.display = 'block'; }
+function closeAboutModal() { document.getElementById('about-modal').style.display = 'none'; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAboutModal(); });
+
+// ── INIT ──
+initAuth(); // replaces buildSidebar() + handles auth
+applyTheme('azure');
+// auto-select first topic after auth resolves
+if(REGISTRY.length>0) selectTopic(REGISTRY[0].META.id);
+</script>
+</body>
+</html>
