@@ -1,9 +1,0 @@
-{
-  "name": "ntms-cloud-guide",
-  "version": "4.0.0",
-  "description": "NTMS Cloud Architecture Guide — Azure · AWS · GCP",
-  "main": "server.js",
-  "scripts": { "start": "node server.js" },
-  "dependencies": { "express": "^4.18.2" },
-  "engines": { "node": ">=20" }
-}
